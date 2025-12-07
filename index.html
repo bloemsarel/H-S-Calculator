@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Holliday-Segar Fluid Calculator - Calculate maintenance fluid requirements for all ages, from neonates to adults">
+  <title>Holliday-Segar Fluid Calculator - All Ages</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      color: #2d3748;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .formula-info {
+      background: #f7fafc;
+      border-left: 4px solid #667eea;
+      padding: 12px 15px;
+      margin-bottom: 25px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: #4a5568;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: white;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23718096' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+
+    select option[value=""] {
+      color: #a0aec0;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    button {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-calculate {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-calculate:active {
+      transform: translateY(0);
+    }
+
+    .btn-reset {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+
+    .btn-reset:hover {
+      background: #cbd5e0;
+    }
+
+    #result {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 8px;
+      border-left: 4px solid #48bb78;
+      display: none;
+      animation: slideIn 0.4s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    #result.show {
+      display: block;
+    }
+
+    #result.error {
+      border-left-color: #f56565;
+      background: #fff5f5;
+    }
+
+    .result-section {
+      margin-bottom: 15px;
+    }
+
+    .result-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .result-title {
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #667eea;
+      margin: 5px 0;
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: #718096;
+      display: block;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 15px 0;
+    }
+
+    .diagnosis-info {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .diagnosis-info h3 {
+      color: #2d3748;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    .info-item {
+      margin-bottom: 10px;
+    }
+
+    .info-item strong {
+      color: #4a5568;
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.9rem;
+    }
+
+    .info-item span {
+      color: #718096;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+      color: #718096;
+      font-size: 0.8rem;
+    }
+
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+        align-items: flex-start;
+      }
+
+      .container {
+        padding: 20px;
+        margin: 20px 0;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+
+      .result-value {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+      }
+
+      .container {
+        box-shadow: none;
+        padding: 20px;
+      }
+
+      .button-group {
+        display: none;
+      }
+    }
+
+    /* Accessibility improvements */
+    button:focus,
+    input:focus,
+    select:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💧 Holliday-Segar Fluid Calculator</h1>
+    <p class="subtitle">Calculate maintenance fluid requirements for all ages - from neonates to adults</p>
+
+    <div class="formula-info">
+      <strong>📋 Formula:</strong> Holliday-Segar Method (100/50/20 ml/kg) + Rehydration (20 ml/kg)
+    </div>
+
+    <form id="calculatorForm">
+      <div class="input-group">
+        <label for="weight">Patient Weight (kg) *</label>
+        <input 
+          type="number" 
+          id="weight" 
+          name="weight"
+          step="0.1" 
+          min="0.1"
+          max="200"
+          placeholder="Enter weight in kilograms"
+          required
+          aria-required="true"
+          aria-describedby="weight-help"
+        >
+      </div>
+
+      <div class="input-group">
+        <label for="diagnosis">Clinical Diagnosis (Optional)</label>
+        <select id="diagnosis" name="diagnosis" aria-describedby="diagnosis-help">
+          <option value="">-- Select a condition --</option>
+          <option value="Blood loss">Blood loss</option>
+          <option value="Vomiting">Vomiting</option>
+          <option value="Diarrhea">Diarrhea</option>
+          <option value="Diabetic rehydration (DKA)">Diabetic rehydration (DKA)</option>
+          <option value="Excessive burns">Excessive burns</option>
+          <option value="Diabetes insipidus">Diabetes insipidus</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-calculate" aria-label="Calculate fluid requirements">
+          Calculate
+        </button>
+        <button type="button" class="btn-reset" onclick="resetFields()" aria-label="Reset form">
+          Reset
+        </button>
+      </div>
+    </form>
+
+    <div id="result" role="region" aria-live="polite"></div>
+
+    <div class="footer">
+      <p><strong>⚠️ Medical Disclaimer:</strong> This calculator is for educational purposes only. The Holliday-Segar formula is most accurate for patients 0-70 kg. For adults >70 kg, consider alternative methods. Always consult appropriate clinical guidelines and medical professionals for patient care decisions.</p>
+      <p style="margin-top: 10px;">Made with ❤️ for healthcare professionals</p>
+    </div>
+  </div>
+
+  <script>
+    // Fluid recommendations mapping
+    const fluidRecommendations = {
+      "Blood loss": {
+        rehydration: "Isotonic crystalloid (Ringer's Lactate or Plasma-Lyte) while preparing blood products",
+        maintenance: "Balanced crystalloid",
+        notes: "Early blood products if significant hemorrhage; avoid excessive saline load"
+      },
+      "Vomiting": {
+        rehydration: "Normal Saline or Ringer's Lactate",
+        maintenance: "Dextrose-saline (e.g., D5 0.45% NaCl) with KCl once urine output confirmed",
+        notes: "Replace chloride; monitor potassium and glucose"
+      },
+      "Diarrhea": {
+        rehydration: "Ringer's Lactate (ORS if mild)",
+        maintenance: "Dextrose-saline with KCl",
+        notes: "RL helps buffer metabolic acidosis; add KCl after urine output"
+      },
+      "Diabetic rehydration (DKA)": {
+        rehydration: "Balanced crystalloid (Plasma-Lyte/Balsol or Ringer's Lactate). Avoid large volumes of normal saline",
+        maintenance: "Switch to dextrose-containing balanced fluids once glucose is near target",
+        notes: "Run insulin and K+ separately; reassess corrected sodium and acid–base frequently"
+      },
+      "Excessive burns": {
+        rehydration: "Ringer's Lactate (Parkland formula or local protocol)",
+        maintenance: "Balanced maintenance with dextrose and KCl, titrated to urine output",
+        notes: "Half total in first 8h from time of burn, remainder over next 16h"
+      },
+      "Diabetes insipidus": {
+        rehydration: "Hypotonic fluids (D5W or 0.45% NaCl) to correct free water deficit",
+        maintenance: "D5W with close sodium/osmolality monitoring",
+        notes: "Avoid isotonic saline as primary fluid; treat underlying etiology"
+      }
+    };
+
+    // Holliday-Segar calculation
+    function hollidaySegar(weight) {
+      let daily_ml;
+      if (weight <= 10) {
+        daily_ml = weight * 100;
+      } else if (weight <= 20) {
+        daily_ml = (10 * 100) + (weight - 10) * 50;
+      } else {
+        daily_ml = (10 * 100) + (10 * 50) + (weight - 20) * 20;
+      }
+      const hourly_ml = daily_ml / 24;
+      return { 
+        daily_ml: daily_ml.toFixed(1), 
+        hourly_ml: hourly_ml.toFixed(2) 
+      };
+    }
+
+    // Calculate and display
+    function calculateVolume(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      const weight = parseFloat(document.getElementById('weight').value);
+      const diagnosis = document.getElementById('diagnosis').value;
+      const resultDiv = document.getElementById('result');
+
+      // Validation
+      if (isNaN(weight) || weight <= 0) {
+        resultDiv.innerHTML = `
+          <div class="result-section">
+            <div class="result-title">❌ Invalid Input</div>
+            <p style="color: #e53e3e; margin-top: 8px;">Please enter a valid weight greater than 0 kg.</p>
+          </div>
+        `;
+        resultDiv.className = 'error show';
+        return;
+      }
+
+      if (weight > 200) {
+        resultDiv.innerHTML = `
+          <div class="result-section">
+            <div class="result-title">⚠️ Warning</div>
+            <p style="color: #dd6b20; margin-top: 8px;">Weight exceeds typical range. Please verify the entered value.</p>
+          </div>
+        `;
+        resultDiv.className = 'error show';
+        return;
+      }
+
+      // Calculate values
+      const result = hollidaySegar(weight);
+      const rehydration_volume = (weight * 20).toFixed(1);
+
+      // Build result HTML
+      let html = `
+        <div class="result-section">
+          <div class="result-title">📊 Calculation Results</div>
+          <p style="margin-top: 5px; color: #4a5568;">Patient Weight: <strong>${weight} kg</strong></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-section">
+          <div class="result-title">💧 Maintenance Fluid Requirements</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+            <div>
+              <span class="result-label">Daily Requirement</span>
+              <div class="result-value">${result.daily_ml}</div>
+              <span class="result-label">mL/day</span>
+            </div>
+            <div>
+              <span class="result-label">Hourly Rate</span>
+              <div class="result-value">${result.hourly_ml}</div>
+              <span class="result-label">mL/hr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-section">
+          <div class="result-title">🔄 Rehydration Volume</div>
+          <div style="margin-top: 10px;">
+            <div class="result-value">${rehydration_volume}</div>
+            <span class="result-label">mL (20 mL/kg bolus)</span>
+          </div>
+        </div>
+      `;
+
+      // Add diagnosis-specific recommendations
+      if (diagnosis && fluidRecommendations[diagnosis]) {
+        const rec = fluidRecommendations[diagnosis];
+        html += `
+          <div class="divider"></div>
+          <div class="result-section">
+            <div class="diagnosis-info">
+              <h3>🩺 ${diagnosis} - Fluid Recommendations</h3>
+              <div class="info-item">
+                <strong>Rehydration Fluid:</strong>
+                <span>${rec.rehydration}</span>
+              </div>
+              <div class="info-item">
+                <strong>Maintenance Fluid:</strong>
+                <span>${rec.maintenance}</span>
+              </div>
+              <div class="info-item">
+                <strong>Clinical Notes:</strong>
+                <span>${rec.notes}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      resultDiv.innerHTML = html;
+      resultDiv.className = 'show';
+
+      // Smooth scroll to results on mobile
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    }
+
+    // Reset fields
+    function resetFields() {
+      document.getElementById('calculatorForm').reset();
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = '';
+      resultDiv.innerHTML = '';
+      document.getElementById('weight').focus();
+    }
+
+    // Form submission handler
+    document.getElementById('calculatorForm').addEventListener('submit', calculateVolume);
+
+    // Auto-focus weight input on load
+    window.addEventListener('load', () => {
+      document.getElementById('weight').focus();
+    });
+
+    // Prevent form submission on Enter in select
+    document.getElementById('diagnosis').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.querySelector('.btn-calculate').click();
+      }
+    });
+  </script>
+</body>
+</html>
