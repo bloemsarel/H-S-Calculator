@@ -1,591 +1,633 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f4c75">
-    <title>Holliday-Segar Calculator</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0f4c75;
-            --primary-dark: #0a3556;
-            --accent: #3282b8;
-            --success: #1b998b;
-            --error: #e63946;
-            --bg-main: #fafbfc;
-            --bg-card: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a5568;
-            --text-tertiary: #718096;
-            --border: #e2e8f0;
-            --shadow-sm: 0 1px 3px rgba(15, 76, 117, 0.08);
-            --shadow-md: 0 4px 12px rgba(15, 76, 117, 0.12);
-            --shadow-lg: 0 10px 30px rgba(15, 76, 117, 0.15);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf0 100%);
-            color: var(--text-primary);
-            min-height: 100vh;
-            padding: 1rem;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-            animation: fadeIn 0.8s ease-out 0.2s both;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .app-title {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: -0.5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            font-size: 0.875rem;
-            color: var(--text-tertiary);
-            font-weight: 400;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 1.75rem;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
-        }
-
-        .formula-info {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            line-height: 1.6;
-            margin-bottom: 1.75rem;
-            border: none;
-            box-shadow: 0 4px 12px rgba(15, 76, 117, 0.25);
-        }
-
-        .formula-info strong {
-            display: block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            margin-bottom: 0.25rem;
-            opacity: 0.9;
-            font-weight: 600;
-        }
-
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .input-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            letter-spacing: 0.01em;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            font-size: 1.125rem;
-            font-family: 'JetBrains Mono', monospace;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            background: var(--bg-main);
-            color: var(--text-primary);
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(50, 130, 184, 0.1);
-        }
-
-        .input-field::placeholder {
-            color: var(--text-tertiary);
-            font-weight: 400;
-        }
-
-        .input-unit {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            color: var(--text-tertiary);
-            font-weight: 600;
-            pointer-events: none;
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn {
-            padding: 0.875rem 1.5rem;
-            font-size: 0.9375rem;
-            font-weight: 600;
-            font-family: 'Public Sans', sans-serif;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-            font-size: 0.8125rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(15, 76, 117, 0.25);
-            grid-column: span 2;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(15, 76, 117, 0.35);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: var(--bg-main);
-            color: var(--text-secondary);
-            border: 2px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: white;
-            border-color: var(--text-tertiary);
-            transform: translateY(-1px);
-        }
-
-        .results-card {
-            min-height: 180px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            border: 2px dashed var(--border);
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .results-card.has-content {
-            border: 2px solid var(--success);
-            background: linear-gradient(135deg, #f0fdf9 0%, #ffffff 100%);
-            animation: resultAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes resultAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 140px;
-            color: var(--text-tertiary);
-            text-align: center;
-        }
-
-        .empty-state svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 0.75rem;
-            opacity: 0.4;
-        }
-
-        .empty-state p {
-            font-size: 0.875rem;
-            max-width: 280px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .result-item {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-        }
-
-        .result-label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            line-height: 1.2;
-        }
-
-        .unit {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            font-weight: 500;
-            margin-left: 0.25rem;
-        }
-
-        .error-message {
-            text-align: center;
-            padding: 2rem;
-            color: var(--error);
-            font-weight: 500;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-top: 2rem;
-            padding: 1rem;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 0.75rem;
-            }
-
-            .app-title {
-                font-size: 1.25rem;
-            }
-
-            .card {
-                padding: 1.5rem;
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-
-            .result-value {
-                font-size: 1.25rem;
-            }
-        }
-
-        /* PWA Install Banner */
-        .install-banner {
-            position: fixed;
-            bottom: 1rem;
-            left: 1rem;
-            right: 1rem;
-            max-width: 500px;
-            margin: 0 auto;
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            display: none;
-            animation: slideUp 0.4s ease-out;
-            z-index: 1000;
-        }
-
-        .install-banner.visible {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .install-banner button {
-            background: white;
-            color: var(--primary);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .install-banner .close {
-            background: transparent;
-            color: white;
-            padding: 0.25rem 0.5rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2196F3">
+  <meta name="description" content="Holliday-Segar Fluid Calculator with fluid recommendations by condition">
+  <title>H-S Fluid Calculator</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+    
+    header h1 {
+      font-size: 1.8em;
+      margin-bottom: 5px;
+    }
+    
+    header p {
+      opacity: 0.9;
+      font-size: 0.9em;
+    }
+    
+    .install-container {
+      background: #f0f4ff;
+      padding: 15px;
+      text-align: center;
+      border-bottom: 2px solid #e0e7ff;
+    }
+    
+    #installButton {
+      display: none;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1em;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    #installButton:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+    }
+    
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 1em;
+      font-weight: 600;
+      color: #495057;
+      transition: all 0.3s ease;
+    }
+    
+    .tab:hover {
+      background: #e9ecef;
+    }
+    
+    .tab.active {
+      background: white;
+      color: #667eea;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 30px;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e7ff;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-calculate {
+      background: #667eea;
+      color: white;
+    }
+    
+    .btn-calculate:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-reset {
+      background: #e0e7ff;
+      color: #667eea;
+    }
+    
+    .btn-reset:hover {
+      background: #c7d2fe;
+    }
+    
+    .btn-diagnosis {
+      background: #10b981;
+      color: white;
+    }
+    
+    .btn-diagnosis:hover {
+      background: #059669;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    
+    #result {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f0f4ff;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      white-space: pre-line;
+      line-height: 1.8;
+    }
+    
+    #result:empty {
+      display: none;
+    }
+    
+    .condition-card {
+      background: #ffffff;
+      border: 2px solid #e0e7ff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .condition-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    
+    .condition-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .fluid-info {
+      margin: 10px 0;
+    }
+    
+    .fluid-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+    
+    .fluid-value {
+      color: #212529;
+      padding-left: 15px;
+      margin-bottom: 8px;
+    }
+    
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+      font-size: 0.95em;
+    }
+    
+    .section-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #333;
+      margin: 30px 0 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    @media (max-width: 600px) {
+      .button-group {
+        flex-direction: column;
+      }
+      
+      header h1 {
+        font-size: 1.4em;
+      }
+      
+      .tab {
+        font-size: 0.9em;
+        padding: 12px 8px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1 class="app-title">⚕️ Holliday-Segar</h1>
-            <p class="subtitle">IV Fluid Maintenance Calculator</p>
-        </header>
-
-        <div class="card">
-            <div class="formula-info">
-                <strong>FORMULA</strong>
-                Holliday-Segar (100/50/20 ml/kg)<br>
-                + Rehydration (20 ml/kg)
-            </div>
-
-            <div class="input-group">
-                <label class="input-label" for="weight">Patient Weight</label>
-                <div class="input-wrapper">
-                    <input 
-                        type="number" 
-                        id="weight" 
-                        class="input-field" 
-                        placeholder="Enter weight"
-                        step="0.1"
-                        min="0"
-                        autocomplete="off"
-                    >
-                    <span class="input-unit">kg</span>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="calculateVolume()">
-                    Calculate Volume
-                </button>
-                <button class="btn btn-secondary" onclick="resetFields()">
-                    Reset
-                </button>
-            </div>
-        </div>
-
-        <div class="card results-card" id="resultsCard">
-            <div id="resultsContent">
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <p>Enter patient weight to calculate fluid requirements</p>
-                </div>
-            </div>
-        </div>
-
-        <footer class="footer">
-            Medical Calculator • Version 1.0<br>
-            Always verify calculations clinically
-        </footer>
+  <div class="container">
+    <header>
+      <h1>💧 Holliday-Segar Fluid Calculator</h1>
+      <p>Comprehensive fluid management and diagnosis tool</p>
+    </header>
+    
+    <div class="install-container">
+      <button id="installButton">📲 Install App on Your Device</button>
     </div>
-
-    <div class="install-banner" id="installBanner">
-        <div style="flex: 1;">
-            <strong>Install App</strong><br>
-            <small>Add to home screen for quick access</small>
-        </div>
-        <button onclick="installApp()">Install</button>
-        <button class="close" onclick="closeInstallBanner()">✕</button>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('calculator')">Calculator</button>
+      <button class="tab" onclick="switchTab('recommendations')">Fluid Recommendations</button>
     </div>
+    
+    <div id="calculator" class="tab-content active">
+      <div class="form-group">
+        <label for="weight">Enter Weight (kg):</label>
+        <input type="number" id="weight" step="0.1" placeholder="Enter patient weight">
+      </div>
+      
+      <div class="form-group">
+        <label for="diagnosis">Select Diagnosis:</label>
+        <select id="diagnosis">
+          <option value="">-- Choose a condition --</option>
+          <option value="Blood loss">Blood loss (hemorrhage)</option>
+          <option value="Vomiting">Vomiting</option>
+          <option value="Diarrhea">Diarrhea</option>
+          <option value="Diabetic rehydration (DKA)">Diabetes & Diabetic Ketoacidosis (DKA)</option>
+          <option value="Cardiogenic shock">Cardiogenic & Neurogenic Shock</option>
+          <option value="Reduced intake">Reduced intake of fluids (elderly)</option>
+          <option value="Heat dehydration">Heat dehydration</option>
+          <option value="Excessive burns">Excessive burns</option>
+          <option value="Sepsis">Sepsis / Septic shock</option>
+          <option value="Post operative">Post operative patients</option>
+          <option value="Renal impairment">Renal impairment</option>
+          <option value="Hepatic failure">Hepatic failure</option>
+        </select>
+      </div>
+      
+      <div class="button-group">
+        <button class="btn-calculate" onclick="calculateVolume()">Calculate Volume</button>
+        <button class="btn-diagnosis" onclick="showDiagnosisRecommendation()">Get Fluid Recommendation</button>
+        <button class="btn-reset" onclick="resetFields()">Reset</button>
+      </div>
+      
+      <div id="result"></div>
+    </div>
+    
+    <div id="recommendations" class="tab-content">
+      <h2 class="section-title">🩺 Recommended Fluids by Condition</h2>
+      
+      <div class="condition-card">
+        <div class="condition-title">🩸 Blood loss (hemorrhage)</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">Ringer's Lactate (RL) or Normal Saline (NS)</div>
+        </div>
+        <div class="warning">⚠️ Colloids or blood products may be required depending on severity.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🤢 Vomiting</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">Normal Saline (NS)</div>
+          <div class="fluid-label">Alternative:</div>
+          <div class="fluid-value">RL if metabolic alkalosis suspected</div>
+        </div>
+        <div class="warning">⚠️ Monitor potassium replacement.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">💧 Diarrhea</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">Oral Rehydration Solution (ORS) if mild/moderate</div>
+          <div class="fluid-label">Severe:</div>
+          <div class="fluid-value">NS or RL IV</div>
+        </div>
+        <div class="warning">⚠️ Replace potassium losses.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🍬 Diabetes & Diabetic Ketoacidosis (DKA)</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">Balsol or Plasmalyte B (balanced crystalloids preferred)</div>
+          <div class="fluid-label">Alternative:</div>
+          <div class="fluid-value">NS initially if unavailable</div>
+        </div>
+        <div class="warning">⚠️ Careful monitoring of glucose, potassium, and acid–base status.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">❤️ Cardiogenic & Neurogenic Shock</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">NS or RL cautiously</div>
+        </div>
+        <div class="warning">⚠️ Avoid fluid overload; vasopressors often required.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">👴 Reduced intake of fluids (especially in the aged)</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">NS or RL (gentle maintenance)</div>
+        </div>
+        <div class="warning">⚠️ Adjust for renal/cardiac function.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🌡️ Heat dehydration</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">ORS (oral if possible)</div>
+          <div class="fluid-label">Severe:</div>
+          <div class="fluid-value">NS or RL IV</div>
+        </div>
+        <div class="warning">⚠️ Monitor sodium to avoid rapid correction.</div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🔥 Excessive burns</div>
+        <div class="fluid-info">
+          <div class="fluid-label">First line:</div>
+          <div class="fluid-value">RL (Parkland formula guidance)</div>
+        </div>
+        <div class="warning">⚠️ Strict monitoring of urine output and electrolytes.</div>
+      </div>
+      
+      <h2 class="section-title">🔍 Other Situations Requiring Fluid Maintenance</h2>
+      
+      <div class="condition-card">
+        <div class="condition-title">🦠 Sepsis / Septic shock</div>
+        <div class="fluid-info">
+          <div class="fluid-value">RL or Plasmalyte B preferred</div>
+        </div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🏥 Post operative patients</div>
+        <div class="fluid-info">
+          <div class="fluid-value">NS or RL for maintenance, adjust for surgical losses</div>
+        </div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🫘 Renal impairment</div>
+        <div class="fluid-info">
+          <div class="fluid-value">Avoid potassium containing fluids unless levels are low</div>
+        </div>
+      </div>
+      
+      <div class="condition-card">
+        <div class="condition-title">🫀 Hepatic failure</div>
+        <div class="fluid-info">
+          <div class="fluid-value">Prefer NS, avoid lactate containing fluids if severe liver dysfunction</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        // Holliday-Segar calculation
-        function hollidaySegar(weightKg) {
-            if (weightKg <= 0) {
-                throw new Error('Weight must be greater than zero');
-            }
+  <script>
+    // Enhanced fluid recommendations with detailed protocols
+    const fluidRecommendations = {
+      "Blood loss": {
+        rehydration: "Ringer's Lactate (RL) or Normal Saline (NS)",
+        maintenance: "Balanced crystalloid",
+        notes: "Colloids or blood products may be required depending on severity. Early blood products if significant hemorrhage; avoid excessive saline load."
+      },
+      "Vomiting": {
+        rehydration: "Normal Saline (NS)",
+        maintenance: "Dextrose-saline (e.g., D5 0.45% NaCl) with KCl once urine output confirmed",
+        notes: "RL if metabolic alkalosis suspected. Monitor potassium replacement. Replace chloride; monitor potassium and glucose."
+      },
+      "Diarrhea": {
+        rehydration: "Oral Rehydration Solution (ORS) if mild/moderate; NS or RL IV if severe",
+        maintenance: "Dextrose-saline with KCl",
+        notes: "Replace potassium losses. RL helps buffer metabolic acidosis; add KCl after urine output."
+      },
+      "Diabetic rehydration (DKA)": {
+        rehydration: "Balsol or Plasmalyte B (balanced crystalloids preferred). NS initially if unavailable",
+        maintenance: "Switch to dextrose-containing balanced fluids once glucose is near target",
+        notes: "Careful monitoring of glucose, potassium, and acid–base status. Run insulin and K+ separately; reassess corrected sodium frequently."
+      },
+      "Cardiogenic shock": {
+        rehydration: "NS or RL cautiously",
+        maintenance: "Minimal maintenance, vasopressor support",
+        notes: "Avoid fluid overload; vasopressors often required. Monitor closely for pulmonary edema."
+      },
+      "Reduced intake": {
+        rehydration: "NS or RL (gentle maintenance)",
+        maintenance: "Balanced maintenance fluids",
+        notes: "Adjust for renal/cardiac function. Monitor for signs of fluid overload in elderly patients."
+      },
+      "Heat dehydration": {
+        rehydration: "ORS (oral if possible); NS or RL IV if severe",
+        maintenance: "Balanced maintenance once rehydrated",
+        notes: "Monitor sodium to avoid rapid correction. Watch for heat-related complications."
+      },
+      "Excessive burns": {
+        rehydration: "Ringer's Lactate (Parkland formula guidance)",
+        maintenance: "Balanced maintenance with dextrose and KCl, titrated to urine output",
+        notes: "Strict monitoring of urine output and electrolytes. Half total in first 8h from time of burn, remainder over next 16h."
+      },
+      "Sepsis": {
+        rehydration: "RL or Plasmalyte B preferred",
+        maintenance: "Balanced crystalloids with glucose monitoring",
+        notes: "Early goal-directed therapy. Consider vasopressor support if hypotensive despite fluids."
+      },
+      "Post operative": {
+        rehydration: "NS or RL for maintenance, adjust for surgical losses",
+        maintenance: "Standard maintenance with electrolyte monitoring",
+        notes: "Account for ongoing losses (drains, NG tubes). Monitor closely in first 24 hours."
+      },
+      "Renal impairment": {
+        rehydration: "Avoid potassium containing fluids unless levels are low",
+        maintenance: "Potassium-free maintenance fluids",
+        notes: "Close monitoring of renal function and electrolytes. Adjust volumes based on urine output."
+      },
+      "Hepatic failure": {
+        rehydration: "Prefer NS, avoid lactate containing fluids if severe liver dysfunction",
+        maintenance: "NS-based maintenance",
+        notes: "Avoid RL in severe hepatic dysfunction. Monitor for hepatic encephalopathy and coagulopathy."
+      }
+    };
 
-            let dailyMl;
-            if (weightKg <= 10) {
-                dailyMl = weightKg * 100;
-            } else if (weightKg <= 20) {
-                dailyMl = (10 * 100) + (weightKg - 10) * 50;
-            } else {
-                dailyMl = (10 * 100) + (10 * 50) + (weightKg - 20) * 20;
-            }
+    // Holliday-Segar calculation
+    function hollidaySegar(weight) {
+      let daily_ml;
+      if (weight <= 10) {
+        daily_ml = weight * 100;
+      } else if (weight <= 20) {
+        daily_ml = (10 * 100) + (weight - 10) * 50;
+      } else {
+        daily_ml = (10 * 100) + (10 * 50) + (weight - 20) * 20;
+      }
+      const hourly_ml = daily_ml / 24;
+      return { daily_ml: daily_ml.toFixed(1), hourly_ml: hourly_ml.toFixed(2) };
+    }
 
-            const hourlyMl = dailyMl / 24;
+    // Calculate and display
+    function calculateVolume() {
+      const weight = parseFloat(document.getElementById('weight').value);
+      const diagnosis = document.getElementById('diagnosis').value;
+      const resultDiv = document.getElementById('result');
 
-            return {
-                weight: weightKg,
-                daily: Math.round(dailyMl * 10) / 10,
-                hourly: Math.round(hourlyMl * 100) / 100
-            };
-        }
+      if (isNaN(weight) || weight <= 0) {
+        resultDiv.innerHTML = "<strong style='color: #dc3545;'>⚠️ Please enter a valid weight.</strong>";
+        return;
+      }
 
-        function calculateVolume() {
-            const weightInput = document.getElementById('weight');
-            const resultsCard = document.getElementById('resultsCard');
-            const resultsContent = document.getElementById('resultsContent');
+      const result = hollidaySegar(weight);
+      const rehydration_volume = (weight * 20).toFixed(1);
 
-            try {
-                const weight = parseFloat(weightInput.value);
-                
-                if (isNaN(weight) || weight <= 0) {
-                    throw new Error('Please enter a valid weight');
-                }
+      let text = `<strong>📊 Calculation Results</strong>\n\n`;
+      text += `Weight: ${weight} kg\n`;
+      text += `Daily Maintenance: ${result.daily_ml} mL/day\n`;
+      text += `Hourly Rate: ${result.hourly_ml} mL/hr\n`;
+      text += `Rehydration Volume (20 ml/kg): ${rehydration_volume} mL`;
 
-                const result = hollidaySegar(weight);
-                const rehydration = Math.round(weight * 20 * 10) / 10;
+      if (diagnosis && fluidRecommendations[diagnosis]) {
+        const rec = fluidRecommendations[diagnosis];
+        text += `\n\n<strong>💊 Fluid Protocol for ${diagnosis}</strong>\n\n`;
+        text += `<strong>Rehydration:</strong> ${rec.rehydration}\n`;
+        text += `<strong>Maintenance:</strong> ${rec.maintenance}\n`;
+        text += `<strong>Notes:</strong> ${rec.notes}`;
+      }
 
-                resultsCard.classList.add('has-content');
-                resultsContent.innerHTML = `
-                    <div class="results-grid">
-                        <div class="result-item">
-                            <div class="result-label">Patient Weight</div>
-                            <div class="result-value">${result.weight}<span class="unit">kg</span></div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-label">Daily Requirement</div>
-                            <div class="result-value">${result.daily}<span class="unit">mL/day</span></div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-label">Hourly Rate</div>
-                            <div class="result-value">${result.hourly}<span class="unit">mL/hr</span></div>
-                        </div>
-                        <div class="result-item">
-                            <div class="result-label">Rehydration (20 ml/kg)</div>
-                            <div class="result-value">${rehydration}<span class="unit">mL</span></div>
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                resultsCard.classList.remove('has-content');
-                resultsContent.innerHTML = `
-                    <div class="error-message">
-                        ❌ ${error.message}
-                    </div>
-                `;
-            }
-        }
+      resultDiv.innerHTML = text;
+    }
 
-        function resetFields() {
-            document.getElementById('weight').value = '';
-            const resultsCard = document.getElementById('resultsCard');
-            const resultsContent = document.getElementById('resultsContent');
-            
-            resultsCard.classList.remove('has-content');
-            resultsContent.innerHTML = `
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <p>Enter patient weight to calculate fluid requirements</p>
-                </div>
-            `;
-            document.getElementById('weight').focus();
-        }
+    // Show diagnosis recommendation only
+    function showDiagnosisRecommendation() {
+      const diagnosis = document.getElementById('diagnosis').value;
+      const resultDiv = document.getElementById('result');
 
-        // Enter key support
-        document.getElementById('weight').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                calculateVolume();
-            }
-        });
+      if (!diagnosis) {
+        resultDiv.innerHTML = "<strong style='color: #dc3545;'>⚠️ Please select a diagnosis first.</strong>";
+        return;
+      }
 
-        // PWA Installation
-        let deferredPrompt;
+      if (fluidRecommendations[diagnosis]) {
+        const rec = fluidRecommendations[diagnosis];
+        let text = `<strong>💊 Recommended Fluids for ${diagnosis}</strong>\n\n`;
+        text += `<strong>Rehydration Fluid:</strong>\n${rec.rehydration}\n\n`;
+        text += `<strong>Maintenance Fluid:</strong>\n${rec.maintenance}\n\n`;
+        text += `<strong>Clinical Notes:</strong>\n${rec.notes}`;
+        resultDiv.innerHTML = text;
+      }
+    }
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBanner').classList.add('visible');
-        });
+    // Reset fields
+    function resetFields() {
+      document.getElementById('weight').value = "";
+      document.getElementById('diagnosis').value = "";
+      document.getElementById('result').innerHTML = "";
+      document.getElementById('weight').focus();
+    }
 
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                    closeInstallBanner();
-                });
-            }
-        }
+    // Tab switching
+    function switchTab(tabName) {
+      // Hide all tabs
+      const tabs = document.querySelectorAll('.tab-content');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      // Remove active from all tab buttons
+      const tabButtons = document.querySelectorAll('.tab');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
 
-        function closeInstallBanner() {
-            document.getElementById('installBanner').classList.remove('visible');
-        }
+    // PWA Installation
+    let deferredPrompt;
+    const installButton = document.getElementById('installButton');
 
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {
-                // Service worker optional
-            });
-        }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installButton.style.display = 'inline-block';
+    });
 
-        // Focus input on load
-        window.addEventListener('load', () => {
-            document.getElementById('weight').focus();
-        });
-    </script>
+    installButton.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to install prompt: ${outcome}`);
+        deferredPrompt = null;
+        installButton.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA installed successfully');
+      installButton.style.display = 'none';
+    });
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    }
+  </script>
 </body>
 </html>
