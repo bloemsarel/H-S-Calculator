@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>H-S Fluid Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    .app {
+        width: 100%;
+        max-width: 480px;
+        background: #111827;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+        font-size: 1.2rem;
+        margin: 0 0 4px;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        margin-bottom: 16px;
+    }
+
+    label {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #1f2937;
+        background: #020617;
+        color: #e5e7eb;
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    input:focus, select:focus {
+        border-color: #38bdf8;
+        outline: none;
+        box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, #0ea5e9, #22c55e);
+        color: #0b1120;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 6px;
+    }
+
+    .result-box {
+        background: #1e293b;
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 14px;
+        border: 1px solid #334155;
+    }
+
+    .fluid-card {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        background: rgba(56,189,248,0.1);
+        border: 1px solid rgba(56,189,248,0.4);
+    }
+
+    .warning {
+        margin-top: 6px;
+        padding: 8px;
+        border-radius: 8px;
+        background: rgba(248,113,113,0.1);
+        border: 1px solid rgba(248,113,113,0.5);
+        color: #fecaca;
+    }
+
+    .error {
+        color: #f87171;
+        margin-top: -6px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+    <h1>H-S Fluid Calculator</h1>
+    <div class="subtitle">Holliday–Segar + 20 mL/kg • IV fluid guidance</div>
+
+    <label for="weight">Weight (kg)</label>
+    <input id="weight" type="number" inputmode="decimal" placeholder="Enter weight">
+
+    <label for="diagnosis">Diagnosis / Clinical context</label>
+    <select id="diagnosis">
+        <option value="">— Select diagnosis —</option>
+        <option value="hemorrhage">Blood loss (hemorrhage)</option>
+        <option value="vomiting">Vomiting</option>
+        <option value="diarrhea">Diarrhea</option>
+        <option value="dka">Diabetes / DKA</option>
+        <option value="shock">Cardiogenic / neurogenic shock</option>
+        <option value="reduced_intake">Reduced intake (elderly)</option>
+        <option value="heat">Heat dehydration</option>
+        <option value="burns">Excessive burns</option>
+        <option value="sepsis">Sepsis / septic shock</option>
+        <option value="postop">Postoperative patient</option>
+        <option value="renal">Renal impairment</option>
+        <option value="hepatic">Hepatic failure</option>
+    </select>
+
+    <button id="calculate">Calculate Fluid</button>
+
+    <div id="error" class="error" style="display:none;"></div>
+
+    <div id="results" class="result-box" style="display:none;">
+        <div><strong>Daily requirement:</strong> <span id="daily"></span></div>
+        <div><strong>Hourly rate:</strong> <span id="hourly"></span></div>
+        <div><strong>Rehydration (20 mL/kg):</strong> <span id="rehyd"></span></div>
+        <div><strong>Weight:</strong> <span id="wDisplay"></span></div>
+
+        <div id="fluidCard" class="fluid-card" style="display:none;">
+            <div id="fluidTitle" style="font-weight:600;"></div>
+            <div id="fluidFirst"></div>
+            <div id="fluidAlt"></div>
+            <div id="fluidWarning" class="warning" style="display:none;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const fluidData = {
+    hemorrhage: {
+        title: "Blood loss (hemorrhage)",
+        first: "First line: Ringer’s Lactate (RL) or Normal Saline (NS).",
+        alt: "Colloids or blood products may be required depending on severity.",
+        warning: "Monitor haemodynamics closely; consider early blood products."
+    },
+    vomiting: {
+        title: "Vomiting",
+        first: "First line: Normal Saline (NS).",
+        alt: "Alternative: RL if metabolic alkalosis suspected.",
+        warning: "Monitor potassium replacement."
+    },
+    diarrhea: {
+        title: "Diarrhea",
+        first: "ORS if mild/moderate.",
+        alt: "Severe: NS or RL IV.",
+        warning: "Replace potassium losses."
+    },
+    dka: {
+        title: "Diabetes / DKA",
+        first: "First line: Balsol or Plasmalyte B.",
+        alt: "Alternative: NS initially.",
+        warning: "Monitor glucose, potassium, acid–base status."
+    },
+    shock: {
+        title: "Cardiogenic / neurogenic shock",
+        first: "NS or RL cautiously.",
+        alt: "Vasopressors often required.",
+        warning: "Avoid fluid overload."
+    },
+    reduced_intake: {
+        title: "Reduced intake (elderly)",
+        first: "NS or RL gentle maintenance.",
+        alt: "",
+        warning: "Adjust for renal/cardiac function."
+    },
+    heat: {
+        title: "Heat dehydration",
+        first: "ORS if possible.",
+        alt: "Severe: NS or RL IV.",
+        warning: "Monitor sodium."
+    },
+    burns: {
+        title: "Excessive burns",
+        first: "RL (Parkland formula guidance).",
+        alt: "",
+        warning: "Strict monitoring of urine output."
+    },
+    sepsis: {
+        title: "Sepsis / septic shock",
+        first: "RL or Plasmalyte B preferred.",
+        alt: "",
+        warning: "Reassess fluid responsiveness."
+    },
+    postop: {
+        title: "Postoperative patient",
+        first: "NS or RL for maintenance.",
+        alt: "Adjust for surgical losses.",
+        warning: "Avoid unnecessary positive balance."
+    },
+    renal: {
+        title: "Renal impairment",
+        first: "Avoid potassium-containing fluids.",
+        alt: "NS often preferred.",
+        warning: "Monitor potassium closely."
+    },
+    hepatic: {
+        title: "Hepatic failure",
+        first: "Prefer NS.",
+        alt: "Avoid lactate-containing fluids.",
+        warning: "Monitor sodium and lactate."
+    }
+};
+
+function hollidaySegar(w) {
+    if (w <= 0) throw "Weight must be greater than zero.";
+    let daily;
+    if (w <= 10) daily = w * 100;
+    else if (w <= 20) daily = 1000 + (w - 10) * 50;
+    else daily = 1500 + (w - 20) * 20;
+    return { daily, hourly: daily / 24 };
+}
+
+const weight = document.getElementById("weight");
+const diagnosis = document.getElementById("diagnosis");
+const calculateBtn = document.getElementById("calculate");
+
+weight.addEventListener("keydown", e => {
+    if (e.key === "Enter") diagnosis.focus();
+});
+
+diagnosis.addEventListener("keydown", e => {
+    if (e.key === "Enter") calculate();
+});
+
+calculateBtn.addEventListener("click", calculate);
+
+function calculate() {
+    const w = parseFloat(weight.value);
+    const dx = diagnosis.value;
+
+    if (!w || w <= 0) {
+        showError("Please enter a valid weight.");
+        return;
+    }
+
+    hideError();
+
+    const res = hollidaySegar(w);
+    const rehyd = w * 20;
+
+    document.getElementById("daily").textContent = res.daily.toFixed(1) + " mL/day";
+    document.getElementById("hourly").textContent = res.hourly.toFixed(2) + " mL/hr";
+    document.getElementById("rehyd").textContent = rehyd.toFixed(1) + " mL";
+    document.getElementById("wDisplay").textContent = w.toFixed(1) + " kg";
+
+    document.getElementById("results").style.display = "block";
+
+    if (dx) {
+        const f = fluidData[dx];
+        document.getElementById("fluidTitle").textContent = f.title;
+        document.getElementById("fluidFirst").textContent = f.first;
+        document.getElementById("fluidAlt").textContent = f.alt;
+
+        if (f.warning) {
+            document.getElementById("fluidWarning").style.display = "block";
+            document.getElementById("fluidWarning").textContent = "⚠️ " + f.warning;
+        } else {
+            document.getElementById("fluidWarning").style.display = "none";
+        }
+
+        document.getElementById("fluidCard").style.display = "block";
+    } else {
+        document.getElementById("fluidCard").style.display = "none";
+    }
+}
+
+function showError(msg) {
+    const e = document.getElementById("error");
+    e.textContent = msg;
+    e.style.display = "block";
+}
+
+function hideError() {
+    document.getElementById("error").style.display = "none";
+}
+</script>
+
+</body>
+</html>
